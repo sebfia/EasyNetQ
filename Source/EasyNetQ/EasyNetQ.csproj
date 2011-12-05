@@ -47,30 +47,47 @@
     <Compile Include="..\Version.cs">
       <Link>Properties\Version.cs</Link>
     </Compile>
+    <Compile Include="AssemblyScanner.cs" />
     <Compile Include="BinarySerializer.cs" />
+    <Compile Include="ComponentCallModelEnum.cs" />
+    <Compile Include="Config\EasyNetQConfigurationSection.cs" />
+    <Compile Include="Config\EasyNetQConnection.cs" />
+    <Compile Include="Config\EasyNetQMessageEndpointElement.cs" />
     <Compile Include="ConnectionString.cs" />
     <Compile Include="Conventions.cs" />
     <Compile Include="CorrelationIdGenerator.cs" />
     <Compile Include="DefaultConsumerErrorStrategy.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="EasyNetQException.cs" />
+    <Compile Include="ExtendsBus.cs" />
+    <Compile Include="ExtendsExpression.cs" />
+    <Compile Include="IBuilder.cs" />
     <Compile Include="IBus.cs" />
+    <Compile Include="IConfigureComponents.cs" />
     <Compile Include="IConnectionFactory.cs" />
     <Compile Include="IConsumerErrorStrategy.cs" />
     <Compile Include="IConsumerFactory.cs" />
+    <Compile Include="IContainer.cs" />
     <Compile Include="IEasyNetQLogger.cs" />
+    <Compile Include="IHandleMessage.cs" />
     <Compile Include="InMemoryBus.cs" />
     <Compile Include="IRawByteBus.cs" />
     <Compile Include="ISaga.cs" />
+    <Compile Include="ISchedulingBus.cs" />
     <Compile Include="ISerializer.cs" />
+    <Compile Include="IWantTheBus.cs" />
     <Compile Include="JsonSerializer.cs" />
     <Compile Include="Loggers\ConsoleLogger.cs" />
     <Compile Include="MessageCallback.cs" />
+    <Compile Include="NoOpConsumerErrorStrategy.cs" />
     <Compile Include="PersistentConnection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueueingConsumerFactory.cs" />
     <Compile Include="RabbitBus.cs" />
     <Compile Include="RabbitHutch.cs" />
+    <Compile Include="RetryConsumerErrorStrategy.cs" />
+    <Compile Include="ScanAssemblies.cs" />
+    <Compile Include="StandardContainer.cs" />
     <Compile Include="SystemMessages\Error.cs" />
     <Compile Include="SystemMessages\IAssociable.cs" />
     <Compile Include="SystemMessages\MessageBasicProperties.cs" />
@@ -80,6 +97,11 @@
     <Compile Include="SystemMessages\ScheduleMeRepetitive.cs" />
     <Compile Include="SystemMessages\UnscheduleMe.cs" />
     <Compile Include="TypeNameSerializer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ConfigSchema\easynetq.xsd">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
