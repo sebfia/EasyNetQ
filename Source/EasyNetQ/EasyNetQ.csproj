@@ -72,8 +72,13 @@
     <Compile Include="RabbitBus.cs" />
     <Compile Include="RabbitHutch.cs" />
     <Compile Include="SystemMessages\Error.cs" />
+    <Compile Include="SystemMessages\IAssociable.cs" />
     <Compile Include="SystemMessages\MessageBasicProperties.cs" />
+    <Compile Include="SystemMessages\ScheduledMessage.cs" />
     <Compile Include="SystemMessages\ScheduleMe.cs" />
+    <Compile Include="SystemMessages\ScheduleMeCron.cs" />
+    <Compile Include="SystemMessages\ScheduleMeRepetitive.cs" />
+    <Compile Include="SystemMessages\UnscheduleMe.cs" />
     <Compile Include="TypeNameSerializer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
