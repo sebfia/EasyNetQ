@@ -43,7 +43,7 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="Topshelf">
-      <HintPath>..\packages\Topshelf.2.2.1.1\lib\NET35\Topshelf.dll</HintPath>
+      <HintPath>..\packages\Topshelf.2.2.2.0\lib\NET40\Topshelf.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
