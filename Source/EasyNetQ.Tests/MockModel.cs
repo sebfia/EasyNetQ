@@ -10,7 +10,7 @@ namespace EasyNetQ.Tests
         public Action AbortAction { get; set; }
         public Action<uint, ushort, bool> BasicQosAction { get; set; }
         public Action<string, string, IBasicProperties, byte[]> BasicPublishAction { get; set; }
-        public Func<string, bool, bool, bool, IDictionary, string> QueueDeclareAction { get; set; }
+        public Func<string, bool, bool, bool, IDictionary, QueueDeclareOk> QueueDeclareAction { get; set; }
         public Action<string, string, string> QueueBindAction { get; set; }
         public Func<string, bool, string, IBasicConsumer, string> BasicConsumeAction { get; set; }
         public Action<string, string, bool, bool, IDictionary> ExchangeDeclareAction { get; set; }
@@ -22,7 +22,7 @@ namespace EasyNetQ.Tests
             AbortAction = () => { };
             BasicQosAction = (a, b, c) => { };
             BasicPublishAction = (a, b, c, d) => { };
-            QueueDeclareAction = (a, b, c, d, e) => "some_queue_name";
+            QueueDeclareAction = (a, b, c, d, e) => new QueueDeclareOk("some_queue_name", 0, 0);
             QueueBindAction = (a, b, c) => { };
             BasicConsumeAction = (a, b, c, d) => "";
             ExchangeDeclareAction = (a, b, c, d, e) => { };
@@ -60,7 +60,7 @@ namespace EasyNetQ.Tests
 
         public void ExchangeDeclare(string exchange, string type, bool durable)
         {
-        	ExchangeDeclareAction(exchange, type, durable, true, null);
+            ExchangeDeclareAction(exchange, type, durable, true, null);
         }
 
         public void ExchangeDeclare(string exchange, string type)
@@ -103,19 +103,29 @@ namespace EasyNetQ.Tests
             throw new System.NotImplementedException();
         }
 
-        public string QueueDeclare()
+        public QueueDeclareOk QueueDeclare()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public string QueueDeclarePassive(string queue)
+        public QueueDeclareOk QueueDeclarePassive(string queue)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public string QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary arguments)
+        public QueueDeclareOk QueueDeclare(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary arguments)
         {
             return QueueDeclareAction(queue, durable, exclusive, autoDelete, arguments);
+        }
+
+        public bool WaitForConfirms()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WaitForConfirmsOrDie()
+        {
+            throw new NotImplementedException();
         }
 
         public void QueueBind(string queue, string exchange, string routingKey, IDictionary arguments)
@@ -190,7 +200,7 @@ namespace EasyNetQ.Tests
 
         public void BasicPublish(string exchange, string routingKey, IBasicProperties basicProperties, byte[] body)
         {
-            if(BasicPublishAction == null)
+            if (BasicPublishAction == null)
             {
                 throw new NullReferenceException("BasicPublishAction is null");
             }
