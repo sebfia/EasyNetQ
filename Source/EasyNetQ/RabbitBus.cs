@@ -10,7 +10,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace EasyNetQ
 {
-    public class RabbitBus : IBus, IRawByteBus
+    public class RabbitBus : IBus, IRawByteBus, ISchedulingBus
     {
         private readonly SerializeType serializeType;
         private readonly ISerializer serializer;
@@ -448,25 +448,81 @@ namespace EasyNetQ
 
         public void FuturePublish<T>(DateTime timeToRespond, T message)
         {
-            if (message == null)
+            SchedulePublish(
+                x =>
+                x.At(new DateTimeOffset(TimeZone.CurrentTimeZone.ToUniversalTime(timeToRespond))).WithNoRepetition(),
+                message, Guid.NewGuid().ToString());
+        }
+
+        public void SchedulePublish<T>(Action<ISchedulePublishConfigurer> at, T message, string name, string group = null)
+        {
+            var futurePublishConfigurer = new SchedulePublishConfigurer();
+
+            at(futurePublishConfigurer);
+
+            if (!futurePublishConfigurer.IsValid)
+            {
+                throw new ArgumentException("Invalid future publish configuration!", "at");
+            }
+
+            PublishScheduledMessage(futurePublishConfigurer, message, name, group);
+        }
+
+        public void UnschedulePublishedMessage(string name, string group = null)
+        {
+            Publish(new UnscheduleMe(name, group));
+        }
+
+        private void PublishScheduledMessage<T>(SchedulePublishConfigurer schedulePublishConfigurer, T message, string name, string group)
+        {
+            if (message.Equals(default(T)))
             {
                 throw new ArgumentNullException("message");
             }
 
             if (!connection.IsConnected)
             {
-                throw new EasyNetQException("FuturePublish failed. No rabbit server connected.");
+                throw new EasyNetQException("SchedulePublish failed. No rabbit server connected.");
             }
 
             var typeName = serializeType(typeof(T));
             var messageBody = serializer.MessageToBytes(message);
 
-            Publish(new ScheduleMe
+            if (schedulePublishConfigurer.IsCron)
             {
-                WakeTime = timeToRespond,
-                BindingKey = typeName,
-                InnerMessage = messageBody
-            });
+                Publish(new ScheduleMeCron
+                {
+                    CronExpression = schedulePublishConfigurer.CronExpression,
+                    BindingKey = typeName,
+                    InnerMessage = messageBody,
+                    Name = name,
+                    Group = group
+                });
+                return;
+            }
+            if (schedulePublishConfigurer.IsRepeat)
+            {
+                Publish(new ScheduleMeRepetitive
+                {
+                    WakeTime = schedulePublishConfigurer.StartTime,
+                    NumberOfRepetitions = schedulePublishConfigurer.RepeatCount,
+                    RepetitionInterval = schedulePublishConfigurer.RepeatInterval,
+                    BindingKey = typeName,
+                    InnerMessage = messageBody,
+                    Name = name,
+                    Group = group
+                });
+                return;
+            }
+            if (schedulePublishConfigurer.IsSimple)
+            {
+                Publish(new ScheduleMe
+                {
+                    WakeTime = schedulePublishConfigurer.StartTime.UtcDateTime,
+                    BindingKey = typeName,
+                    InnerMessage = messageBody
+                });
+            }
         }
 
         public event Action Connected;
@@ -564,6 +620,117 @@ namespace EasyNetQ
             connection.Dispose();
 
             disposed = true;
+        }
+    }
+
+    public interface ISchedulePublishConfigurer
+    {
+        IStartAtSchedulePublishConfigurer At(DateTimeOffset startAt);
+        ISchedulePublishConfigurer WithCronExpression(string cronExpression);
+    }
+
+    public interface IStartAtSchedulePublishConfigurer
+    {
+        IRepetitiveSchedulePublishConfigurer WithRepetitionEvery(TimeSpan betweenRepetitions);
+        ISchedulePublishConfigurer WithNoRepetition();
+    }
+
+    public interface IRepetitiveSchedulePublishConfigurer
+    {
+        IRepetitiveSchedulePublishConfigurer For(int times);
+        ISchedulePublishConfigurer Forever();
+        ISchedulePublishConfigurer Times();
+    }
+
+    public class SchedulePublishConfigurer : ISchedulePublishConfigurer, IStartAtSchedulePublishConfigurer, IRepetitiveSchedulePublishConfigurer
+    {
+        public SchedulePublishConfigurer()
+        {
+        }
+
+        public string CronExpression { get; private set; }
+
+        public int RepeatCount { get; private set; }
+
+        public TimeSpan RepeatInterval { get; private set; }
+
+        public bool Repeat { get; private set; }
+
+        public DateTimeOffset StartTime { get; private set; }
+
+        public bool IsCron
+        {
+            get { return !String.IsNullOrWhiteSpace(CronExpression); }
+        }
+
+        public bool IsRepeat
+        {
+            get { return Repeat; }
+        }
+
+        public bool IsSimple
+        {
+            get { return !Repeat && StartTime != default(DateTimeOffset); }
+        }
+
+        public bool IsValid
+        {
+            get { return IsCron || IsRepeat || IsSimple; }
+        }
+
+        public IStartAtSchedulePublishConfigurer At(DateTimeOffset startAt)
+        {
+            if (startAt < DateTimeOffset.Now)
+                throw new InvalidOperationException("Unable to schedule message for a time past now!");
+
+            StartTime = startAt;
+            return this;
+        }
+
+        public ISchedulePublishConfigurer WithCronExpression(string cronExpression)
+        {
+            if (String.IsNullOrWhiteSpace(cronExpression))
+                throw new InvalidOperationException("Invalid cron expression!");
+
+            CronExpression = cronExpression;
+
+            return this;
+        }
+
+        public IRepetitiveSchedulePublishConfigurer WithRepetitionEvery(TimeSpan betweenRepetitions)
+        {
+            if (betweenRepetitions.TotalMilliseconds < 1)
+                throw new InvalidOperationException("Invalid time span between repetitions!");
+            Repeat = true;
+            RepeatInterval = betweenRepetitions;
+            return this;
+        }
+
+        public IRepetitiveSchedulePublishConfigurer For(int times)
+        {
+            if (times < 0)
+                throw new InvalidOperationException("Unable to repeat for less than 0 times!");
+            RepeatCount = times;
+            return this;
+        }
+
+        public ISchedulePublishConfigurer Forever()
+        {
+            Repeat = true;
+            RepeatCount = -1;
+            return this;
+        }
+
+        public ISchedulePublishConfigurer WithNoRepetition()
+        {
+            Repeat = false;
+            return this;
+        }
+
+        public ISchedulePublishConfigurer Times()
+        {
+            Repeat = true;
+            return this;
         }
     }
 }
