@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<objects xmlns="http://www.springframework.net" default-autowire="no">
+  <object id="SchedulerFactory" type="Quartz.Impl.StdSchedulerFactory, Quartz" singleton="true"/>
+  <object id="JobFactory" type="EasyNetQ.QuartzScheduler.SpringEnhancedJobFactory, EasyNetQ.QuartzScheduler" singleton="true" autowire="constructor"/>
+  <object id="QuartzScheduler" factory-object="SchedulerFactory" factory-method="GetScheduler" singleton="true" autowire="byType"/>
+  <object id="Scheduler" type="EasyNetQ.QuartzScheduler.ScheduledMessageHandler, EasyNetQ.QuartzScheduler" singleton="true" autowire="constructor"/>
+</objects>
