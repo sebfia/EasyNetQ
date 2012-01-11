@@ -10,5 +10,6 @@ namespace EasyNetQ
         void Configure(Type component, ComponentCallModelEnum callModel);
         void ConfigureProperty(Type component, string property, object value);
         void RegisterSingleton(Type lookupType, object instance);
+        void AttachMessageHandlersToBus(IBus bus, string endpointName);
     }
 }

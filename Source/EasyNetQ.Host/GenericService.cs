@@ -199,6 +199,8 @@ namespace EasyNetQ.Host
                                               });
                 }
             }
+
+            Configure.Instance.Builder.WireAllHandlers(_bus, endpointName);
         }
 
         public void Pause()

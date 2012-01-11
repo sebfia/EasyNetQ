@@ -43,6 +43,11 @@ namespace EasyNetQ
             action(_container.Build(typeToBuild));
         }
 
+        void IBuilder.WireAllHandlers(IBus bus, string endpointName)
+        {
+            _container.AttachMessageHandlersToBus(bus, endpointName);
+        }
+
         IConfigureComponents IConfigureComponents.ConfigureProperty<T>(Expression<Func<T, object>> property, object value)
         {
             _container.ConfigureProperty(typeof(T), property.GetPropertyInfoFromExpression().Name, value);

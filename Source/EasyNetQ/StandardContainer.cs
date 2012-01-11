@@ -80,6 +80,16 @@ namespace EasyNetQ
             }
         }
 
+        public void AttachMessageHandlersToBus(IBus bus, string endpointName)
+        {
+            var handlers = BuildAll(typeof (IHandleMessage<>));
+
+            foreach (var handler in handlers)
+            {
+                bus.RegisterHandler(handler, endpointName);
+            }
+        }
+
         void IDisposable.Dispose()
         {
             

@@ -30,8 +30,14 @@ namespace EasyNetQ
             return _instance._scannedAssemblies.SelectMany(
                 assembly =>
                 (from t in assembly.GetTypes()
-                 where typeToScanFor.IsAssignableFrom(t) && (t != typeToScanFor)
+                 where typeToScanFor.IsAssignableFrom(t) && (t != typeToScanFor) ||
+                 ImplementsGenericInterface(t, typeToScanFor)
                  select t));
+        }
+
+        private static bool ImplementsGenericInterface(Type type, Type interfaceType)
+        {
+            return type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType);
         }
     }
 }

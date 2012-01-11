@@ -123,6 +123,11 @@ namespace EasyNetQ.Spring
             _context.ObjectFactory.RegisterSingleton(lookupType.FullName, instance);
         }
 
+        public void AttachMessageHandlersToBus(IBus bus, string endpointName)
+        {
+            //do nothing here since we are using the MessageHandlerObjectPostProcessor for wiring.
+        }
+
         private bool _disposed;
         void IDisposable.Dispose()
         {

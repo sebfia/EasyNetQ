@@ -10,5 +10,6 @@ namespace EasyNetQ
         IEnumerable<T> BuildAll<T>();
         IEnumerable<object> BuildAll(Type typeToBuild);
         void BuildAndDispatch(Type typeToBuild, Action<object> action);
+        void WireAllHandlers(IBus bus, string endpointName);
     }
 }
